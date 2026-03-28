@@ -8,6 +8,7 @@ COPY Domain/Domain.csproj Domain/
 COPY Application/Application.csproj Application/
 COPY Infrastructure/Infrastructure.csproj Infrastructure/
 COPY Api/Api.csproj Api/
+COPY Tests/Tests.csproj Tests/
 
 # Restore dependencies
 RUN dotnet restore DesafioFinal.sln
