@@ -1,0 +1,35 @@
+## Build artifacts
+bin/
+obj/
+
+## .NET
+*.user
+*.suo
+*.vs/
+.vs/
+*.swp
+
+## Rider / JetBrains
+.idea/
+
+## VS Code
+.vscode/
+
+## NuGet
+*.nupkg
+packages/
+project.lock.json
+
+## Logs
+*.log
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Secrets / env
+*.env
+appsettings.secrets.json
+
+## Claude
+.claude/
