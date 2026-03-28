@@ -99,7 +99,7 @@ desafio-final/
 | **Domain Events** (`Domain/Events`) | Domain | Eventos que representam fatos ocorridos no domínio (`PedidoCriado`, `PedidoAtualizado`, `PedidoRemovido`). |
 | **Use Cases** (`Application/UseCases`) | Application | Encapsulam uma única operação de negócio. Dependem apenas das interfaces do domínio — nunca da infraestrutura diretamente. |
 | **DTOs** (`Application/DTOs`) | Application | Objetos de entrada (`Request`) e saída (`Response`) que trafegam entre a API e os casos de uso. Isolam o domínio do contrato HTTP. |
-| **Validators** (`Application/Validators`) | Application | Validam os dados de entrada usando FluentValidation antes de chegar nos casos de uso. |
+| **Validators** (`Application/Validators`) | Application | Validam os dados de entrada usando FluentValidation. São invocados dentro dos casos de uso como primeira etapa do `ExecuteAsync`, antes de abrir transação ou acionar regras de negócio. |
 | **Facades** (`Application/Facades`) | Application | `PedidoFacade` orquestra operações complexas que envolvem múltiplos repositórios e eventos. `PedidoFactory` cria e atualiza objetos `Pedido`. `PedidoValidatorService` verifica existência de entidades relacionadas. |
 | **Event Handlers** (`Application/EventHandlers`) | Application | Reagem a eventos de domínio publicados após operações de `Pedido`. |
 | **Repository Adapters** (`Infrastructure/Persistence`) | Infrastructure | Implementam os contratos do domínio usando EF Core + PostgreSQL. São os _adapters_ de saída da arquitetura hexagonal. |
@@ -259,6 +259,7 @@ classDiagram
         +DeleteAsync(id)
         +CountAsync()
         +ExisteParaClienteAsync(clienteId)
+        +ExisteParaProdutoAsync(produtoId)
     }
 
     class IDomainEvent {
@@ -303,6 +304,7 @@ sequenceDiagram
     participant Ctrl as Controller
     participant UC as Use Case
     participant Facade as PedidoFacade
+    participant VS as PedidoValidatorService
     participant Repo as Repository Adapter
     participant DB as PostgreSQL
     participant Pub as EventPublisher
@@ -310,17 +312,26 @@ sequenceDiagram
 
     User->>Ctrl: POST /pedidos (JSON)
     Ctrl->>UC: CreatePedidoUseCase.Execute(request)
-    UC->>Facade: PedidoFacade.Criar(request)
-    Facade->>Repo: ExisteClienteAsync / ExisteProdutoAsync
+    UC->>Facade: PedidoFacade.CriarPedidoAsync(clienteId, produtoIds)
+    Facade->>VS: ValidarClienteAsync(clienteId)
+    VS->>Repo: GetByIdAsync(clienteId)
     Repo->>DB: SELECT
-    DB-->>Repo: resultado
+    DB-->>Repo: Cliente
+    Repo-->>VS: Cliente
+    VS-->>Facade: Cliente
+    Facade->>VS: ValidarProdutosAsync(produtoIds)
+    VS->>Repo: GetByIdAsync(produtoId) × N
+    Repo->>DB: SELECT
+    DB-->>Repo: Produto
+    Repo-->>VS: Produto
+    VS-->>Facade: List~Produto~
     Facade->>Repo: AddAsync(pedido)
     Repo->>DB: INSERT
     DB-->>Repo: ok
     Facade->>Pub: PublishAsync(PedidoCriado)
-    Pub->>EH: PedidoCriadoHandler.Handle(event)
+    Pub->>EH: PedidoCriadoHandler.HandleAsync(event)
     EH-->>Pub: ok
-    Facade-->>UC: PedidoResponse
+    Facade-->>UC: Pedido
     UC-->>Ctrl: PedidoResponse
     Ctrl-->>User: 201 Created (JSON)
 ```
