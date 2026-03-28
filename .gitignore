@@ -33,3 +33,6 @@ appsettings.secrets.json
 
 ## Claude
 .claude/
+
+## Docs
+docs/
