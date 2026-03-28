@@ -1,6 +1,7 @@
 using Application.DTOs;
 using Application.Exceptions;
 using Application.UseCases.Clientes;
+using Application.Validators;
 using Domain.Entities;
 using Domain.Interfaces;
 using Moq;
@@ -20,7 +21,7 @@ public class CreateClienteUseCaseTests
         _clienteRepoMock.Setup(r => r.AddAsync(It.IsAny<Cliente>())).Returns(Task.CompletedTask);
 
         using var dbContext = MockDbContextHelper.CreateInMemoryDbContext();
-        var useCase = new CreateClienteUseCase(_clienteRepoMock.Object, dbContext);
+        var useCase = new CreateClienteUseCase(_clienteRepoMock.Object, dbContext, new CreateClienteRequestValidator());
 
         var result = await useCase.ExecuteAsync(new CreateClienteRequest("João", "email@test.com"));
 
@@ -36,7 +37,7 @@ public class CreateClienteUseCaseTests
         _clienteRepoMock.Setup(r => r.ExisteEmailAsync("email@test.com", null)).ReturnsAsync(true);
 
         using var dbContext = MockDbContextHelper.CreateInMemoryDbContext();
-        var useCase = new CreateClienteUseCase(_clienteRepoMock.Object, dbContext);
+        var useCase = new CreateClienteUseCase(_clienteRepoMock.Object, dbContext, new CreateClienteRequestValidator());
 
         await Assert.ThrowsAsync<BusinessRuleException>(() =>
             useCase.ExecuteAsync(new CreateClienteRequest("João", "email@test.com")));

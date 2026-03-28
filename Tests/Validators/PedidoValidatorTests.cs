@@ -18,11 +18,13 @@ public class PedidoValidatorTests
     }
 
     [Fact]
-    public void CreateValidator_DeveFalhar_QuandoClienteIdVazio()
+    public void CreateValidator_DevePassar_QuandoClienteIdEhGuidZero()
     {
+        // Guid.Empty é um ID inexistente, não um campo estruturalmente inválido.
+        // A verificação de existência é responsabilidade do PedidoValidatorService (→ 404).
         var result = _createValidator.Validate(
             new CreatePedidoRequest(Guid.Empty, new List<Guid> { Guid.NewGuid() }));
-        Assert.False(result.IsValid);
+        Assert.True(result.IsValid);
     }
 
     [Fact]

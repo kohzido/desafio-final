@@ -1,6 +1,7 @@
 using Application.DTOs;
 using Application.Exceptions;
 using Application.UseCases.Clientes;
+using Application.Validators;
 using Domain.Entities;
 using Domain.Interfaces;
 using Moq;
@@ -25,7 +26,7 @@ public class UpdateClienteUseCaseTests
             .Returns(Task.CompletedTask);
 
         using var dbContext = MockDbContextHelper.CreateInMemoryDbContext();
-        var useCase = new UpdateClienteUseCase(_clienteRepoMock.Object, dbContext);
+        var useCase = new UpdateClienteUseCase(_clienteRepoMock.Object, dbContext, new UpdateClienteRequestValidator());
 
         var result = await useCase.ExecuteAsync(id, new UpdateClienteRequest("Nome Novo", "novo@test.com"));
 
@@ -41,7 +42,7 @@ public class UpdateClienteUseCaseTests
         _clienteRepoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync((Cliente?)null);
 
         using var dbContext = MockDbContextHelper.CreateInMemoryDbContext();
-        var useCase = new UpdateClienteUseCase(_clienteRepoMock.Object, dbContext);
+        var useCase = new UpdateClienteUseCase(_clienteRepoMock.Object, dbContext, new UpdateClienteRequestValidator());
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
             useCase.ExecuteAsync(id, new UpdateClienteRequest("Nome", "email@test.com")));
@@ -57,7 +58,7 @@ public class UpdateClienteUseCaseTests
             .ReturnsAsync(true);
 
         using var dbContext = MockDbContextHelper.CreateInMemoryDbContext();
-        var useCase = new UpdateClienteUseCase(_clienteRepoMock.Object, dbContext);
+        var useCase = new UpdateClienteUseCase(_clienteRepoMock.Object, dbContext, new UpdateClienteRequestValidator());
 
         await Assert.ThrowsAsync<BusinessRuleException>(() =>
             useCase.ExecuteAsync(id, new UpdateClienteRequest("João", "outro@test.com")));

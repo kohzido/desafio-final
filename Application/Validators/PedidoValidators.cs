@@ -7,10 +7,8 @@ public class CreatePedidoRequestValidator : AbstractValidator<CreatePedidoReques
 {
     public CreatePedidoRequestValidator()
     {
-        RuleFor(x => x.ClienteId).NotEmpty();
         RuleFor(x => x.ProdutoIds).NotNull().Must(ids => ids != null && ids.Count > 0)
-            .WithMessage("ProdutoIds deve conter pelo menos 1 item.")
-            .ForEach(id => id.NotEmpty());
+            .WithMessage("ProdutoIds deve conter pelo menos 1 item.");
     }
 }
 
@@ -19,7 +17,6 @@ public class UpdatePedidoRequestValidator : AbstractValidator<UpdatePedidoReques
     public UpdatePedidoRequestValidator()
     {
         RuleFor(x => x.ProdutoIds).NotNull().Must(ids => ids != null && ids.Count > 0)
-            .WithMessage("ProdutoIds deve conter pelo menos 1 item.")
-            .ForEach(id => id.NotEmpty());
+            .WithMessage("ProdutoIds deve conter pelo menos 1 item.");
     }
 }

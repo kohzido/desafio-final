@@ -2,6 +2,7 @@ using Application.DTOs;
 using Application.Exceptions;
 using Domain.Entities;
 using Domain.Interfaces;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.UseCases.Clientes;
@@ -10,15 +11,21 @@ public class UpdateClienteUseCase
 {
     private readonly IClienteRepository _clienteRepo;
     private readonly DbContext _dbContext;
+    private readonly IValidator<UpdateClienteRequest> _validator;
 
-    public UpdateClienteUseCase(IClienteRepository clienteRepo, DbContext dbContext)
+    public UpdateClienteUseCase(IClienteRepository clienteRepo, DbContext dbContext, IValidator<UpdateClienteRequest> validator)
     {
         _clienteRepo = clienteRepo;
         _dbContext = dbContext;
+        _validator = validator;
     }
 
     public async Task<ClienteResponse> ExecuteAsync(Guid id, UpdateClienteRequest request)
     {
+        var validationResult = await _validator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+            throw new ValidationException(validationResult.Errors);
+
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
         {
